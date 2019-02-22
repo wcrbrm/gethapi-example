@@ -42,12 +42,12 @@ func (s *TcpServer) onConnectionEvent(c *Client,eventType ConnectionEventType, e
 	}
 }
 
-func (s *TcpServer) onTextEvent(c *Client, str string) {
+/*func (s *TcpServer) onTextEvent(c *Client, str string) {
 	//log.Println("onDataEvent, ", c.Conn().RemoteAddr().String(), " data: " , string(data))
 	if s.callbacks.OnTextReceived!=nil {
 		s.callbacks.OnTextReceived(c.Uid, str)
 	}
-}
+}*/
 
 
 // Start network Server
@@ -59,7 +59,7 @@ func (s *TcpServer) Start() {
 	}
 	for {
 		conn, _ := s.listener.Accept()
-		client := NewClient(conn, s.onConnectionEvent, s.onTextEvent)
+		client := NewClient(conn, s.onConnectionEvent)
 		s.onConnectionEvent(client, CONNECTION_EVENT_TYPE_NEW_CONNECTION,nil)
 		go client.listen()
 	}
@@ -99,7 +99,6 @@ func (s *TcpServer) Close(){
 func Listen() {
     // TODO: get parameters (bind, port) from env variable
     tcpServer := NewServer("127.0.0.1:3000", Callbacks{
-        OnTextReceived: onTextReceived,
 	OnConnectionTerminated: onConnectionTerminated,
 	OnNewConnection: onNewConnection,
     })
