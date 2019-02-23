@@ -1,8 +1,11 @@
 package database
 
-import "log"
+import (
+	"log"
+	"math/big"
+)
 
-func (s *DbClient) InitialAllocation(accounts map[string]int64) {
+func (s *DbClient) InitialAllocation(accounts map[string]big.Int) {
 	tx, err := s.DB.Begin()
 	for accountId, amount := range accounts {
 		arg := map[string]interface{}{

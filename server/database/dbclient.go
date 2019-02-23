@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 // Database Client structure

@@ -3,6 +3,7 @@ package blockchain
 import (
 	"context"
 	"log"
+	"math/big"
 	"time"
 )
 
@@ -18,19 +19,25 @@ import (
 
 func (s *BlockchainClient) WatchBlocks() {
 	d := 2 * time.Second
-	for range time.Tick(d) {
+	for {
+		time.Sleep(d)
 		log.Println("[blockchain] watching blocks carefully")
+		// s.EnsureSynced(false)
 	}
 }
 
-func (s *BlockchainClient) EnsureSynced() {
+// on the first run we need to be verbose,
+// on every second run - we don't neet to be verbose
+func (s *BlockchainClient) EnsureSynced(verbose bool) {
 	dbBlockNum := s.DB.GetLastBlock()
 
 	// 1. Get the last block in the database
-	log.Println("[blockchain] Last block in database:", dbBlockNum)
-	if dbBlockNum <= 0 {
+	if verbose {
+		log.Println("[blockchain] Last block in database:", dbBlockNum)
+	}
+	if dbBlockNum.Cmp(big.NewInt(0)) <= 0 {
 		// If there are no blocks, check genesis and create accounts funded with initial allocation
-		// s.DB.InitialAllocation(s.GenesisPath)
+		s.DB.InitialAllocation(s.GetGenesisAllocation())
 	}
 
 	// 2. Get the last block in the blockchain
@@ -38,11 +45,16 @@ func (s *BlockchainClient) EnsureSynced() {
 	if err != nil {
 		log.Fatal("[blockchain] block header error", err)
 	}
-	log.Println("[blockchain] block header number ", header.Number)
+	var chainNum big.Int = *header.Number
+	if verbose {
+		log.Println("[blockchain] block header number ", chainNum)
+	}
 
 	// from the last block in database (not included)
 	// to the last block in the blockchain (included)
 	// run importer of the block
-	for num := dbBlockNum; num <= header.Number; num++ {
+	var one = big.NewInt(1)
+	for num := new(big.Int).Set(&dbBlockNum); num.Cmp(&chainNum) <= 0; num.Add(num, one) {
+		log.Println("[blockchain] syncing block#", num)
 	}
 }

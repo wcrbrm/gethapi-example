@@ -13,7 +13,7 @@ func main() {
 	// Validate that we can access GETH (halt program execution otherwise)
 	chain := blockchain.NewGethConnection(db)
 	// Make sure that blockchain is in sync with the database before moving forward
-	chain.EnsureSynced()
+	chain.EnsureSynced(true)
 
 	// Start thread of blocks watching
 	go chain.WatchBlocks()
