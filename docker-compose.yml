@@ -25,6 +25,7 @@ services:
          - PGSQL_DSN=postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
          - GETH=http://geth:8545
          - GETH_MIN_CONFIRMATIONS=6
+         - GETH_GENESIS_BLOCK=
          - HOST=0.0.0.0
          - PORT=9091
          - GETLAST_CONFIRMATIONS=3

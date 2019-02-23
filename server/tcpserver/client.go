@@ -10,6 +10,7 @@ import (
 	_ "time"
 
 	blockchain "github.com/wcrbrm/gethapi-example/server/blockchain"
+	. "github.com/wcrbrm/gethapi-example/server/database"
 )
 
 type ConnectionEventType string
@@ -24,6 +25,7 @@ const (
 type Client struct {
 	Uid               string
 	conn              net.Conn
+	lastBlock         int
 	chain             *blockchain.BlockchainClient
 	onConnectionEvent func(c *Client, eventType ConnectionEventType, e error) /* function for handling new connections */
 }
@@ -34,6 +36,7 @@ func NewClient(conn net.Conn,
 	return &Client{
 		conn:              conn,
 		chain:             chain,
+		lastBlock:         -1,
 		onConnectionEvent: onConnectionEvent,
 	}
 }
@@ -61,7 +64,7 @@ func (c *Client) listen() {
 				log.Printf("[server][%s] SendEth received '%s'", c.Uid, command)
 				subs := command[len("SendEth"):]
 				// parse payload here
-				var payload blockchain.SendEthRequest
+				var payload SendEthRequest
 				errPayload := json.Unmarshal([]byte(subs), &payload)
 				if errPayload != nil {
 					log.Printf("[server][%s] SendEth payload parser error: %s", c.Uid, errPayload)
@@ -73,7 +76,7 @@ func (c *Client) listen() {
 				}
 
 			} else if command == "GetLast" {
-				log.Printf("[server][%s] GetLast received: '%s'", c.Uid, command)
+				log.Printf("[server][%s] GetLast: '%s', since %d", c.Uid, command, c.lastBlock)
 				// TODO: send client response from c.chain.GetLast()
 				c.SendResponse(Response{"success", "OK"})
 			} else {

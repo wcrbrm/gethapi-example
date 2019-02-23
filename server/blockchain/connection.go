@@ -11,9 +11,10 @@ import (
 
 type BlockchainClient struct {
 	GethAddress          string
-	NumConfirmations     int // # of confirmations for blocks to be kept forever
 	NumLastConfirmations int // # of confirmations for "GetLast" output
 	DB                   *database.DbClient
+	Client               *ethclient.Client
+	GenesisPath          string
 }
 
 func NewGethConnection(db *database.DbClient) *BlockchainClient {
@@ -23,25 +24,25 @@ func NewGethConnection(db *database.DbClient) *BlockchainClient {
 	}
 	log.Printf("[blockchain] connecting to %s\n", GETH)
 
-	_, err := ethclient.Dial(GETH)
+	client, err := ethclient.Dial(GETH)
 	if err != nil {
 		log.Fatal("[blockchain] Couldn't connect to the GETH RPC server")
 	}
-	minConfirmations, ok := os.LookupEnv("GETH_MIN_CONFIRMATIONS")
-	if !ok {
-		minConfirmations = "6"
-	}
-	nConfirmations, _ := strconv.Atoi(minConfirmations)
-
 	lastConfirmations, ok := os.LookupEnv("GETLAST_CONFIRMATIONS")
 	if !ok {
 		lastConfirmations = "3"
 	}
 	nLastConfirmations, _ := strconv.Atoi(lastConfirmations)
+
+	genesisPath, ok := os.LookupEnv("GETH_GENESIS_PATH")
+	if !ok {
+		genesisPath = ""
+	}
 	return &BlockchainClient{
 		GETH,
-		nConfirmations,
 		nLastConfirmations,
 		db,
+		client,
+		genesisPath,
 	}
 }

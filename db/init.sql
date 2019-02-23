@@ -1,6 +1,13 @@
+CREATE UNLOGGED TABLE addresses (
+  address TEXT PRIMARY KEY,
+  value NUMERIC NOT NULL DEFAULT '0',
+  nonce BIGINT NOT NULL DEFAULT '0'
+);
+
 CREATE UNLOGGED TABLE blocks (
   "number" BIGSERIAL PRIMARY KEY,
   hash TEXT NOT NULL UNIQUE,
+  confirmations NUMERIC NOT NULL DEFAULT '0',
   parentHash TEXT NOT NULL,
   nonce TEXT NOT NULL,
   sha3Uncles TEXT NOT NULL,

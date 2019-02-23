@@ -1,6 +1,6 @@
 package tcpserver
 
-import blockchain "github.com/wcrbrm/gethapi-example/server/blockchain"
+import . "github.com/wcrbrm/gethapi-example/server/database"
 
 type Response struct {
 	Status  string `json:"status"`
@@ -8,11 +8,11 @@ type Response struct {
 }
 
 type SendEthResponse struct {
-	Status string                         `json:"status"`
-	Data   blockchain.SendEthResponseBody `json:"data"`
+	Status string              `json:"status"`
+	Data   SendEthResponseBody `json:"data"`
 }
 
 type GetLastResponse struct {
-	Status string                         `json:"status"`
-	Data   blockchain.GetLastResponseBody `json:"data"`
+	Status string              `json:"status"`
+	Data   GetLastResponseBody `json:"data"`
 }

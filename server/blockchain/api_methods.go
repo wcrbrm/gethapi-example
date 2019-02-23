@@ -1,33 +1,20 @@
 package blockchain
 
-import "log"
+import (
+	"log"
 
-type SendEthRequest struct {
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Amount string `json:"amount"`
-	Key    string `json:"key"`
+	. "github.com/wcrbrm/gethapi-example/server/database"
+)
+
+func (s *BlockchainClient) GetLast(since int) *GetLastResponseBody {
+	log.Println("[api] GetLast Since", since)
+	return s.DB.GetLastTransactions(since)
 }
 
-type SendEthResponseBody struct {
-	Address string `json:"address"`
-	Tx      string `json:"tx"`
-	Nonce   int    `json:"nonce"`
-}
-
-type GetLastResponseBody struct {
-	Date          string `json:"date"`
-	Address       string `json:"address"`
-	Amount        string `json:"amount"`
-	Confirmations int    `json:"confirmation"`
-}
-
-func (s *BlockchainClient) GetLast() *GetLastResponseBody {
-	log.Println("[api] Getting Last")
-	return nil
-}
-
-func (s *BlockchainClient) SendEth(req *SendEthRequest) *SendEthResponseBody {
+func (s *BlockchainClient) SendEth(req *SendEthRequest) (*SendEthResponseBody, error) {
 	log.Println("[api] SendEth")
-	return nil
+	// check if address is valid
+	// check account balance before sending. if nothing on this account, sorry, nothing can be sent
+	// clean private Key
+	return nil, nil
 }

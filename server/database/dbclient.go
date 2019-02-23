@@ -1,18 +1,18 @@
 package database
 
 import (
-	_ "database/sql"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 )
 
 // Database Client structure
 type DbClient struct {
-	Dsn string
-	DB  *sqlx.DB
+	Dsn            string
+	DB             *sqlx.DB
+	nConfirmations int
 }
 
 // Connect - return a connection to a postgres database wi
@@ -29,5 +29,11 @@ func NewDatabaseClient() *DbClient {
 	if err != nil {
 		log.Fatal("[db] Ping Error", err)
 	}
-	return &DbClient{DSN, db}
+
+	minConfirmations, ok := os.LookupEnv("GETH_MIN_CONFIRMATIONS")
+	if !ok {
+		minConfirmations = "6"
+	}
+	nConfirmations, _ := strconv.Atoi(minConfirmations)
+	return &DbClient{DSN, db, nConfirmations}
 }
