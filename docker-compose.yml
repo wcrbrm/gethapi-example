@@ -1,45 +1,35 @@
 version: '3'
 services:
    geth:
-     build: ./geth/
-   gethexporter:
-     image: hunterlong/ethexporter
-     ports:
-        - "9015:9015"
-     environment:
-        - GETH=http://geth:8545
-     volumes:
-    	- ./client/testkeys/pub100.txt:/app/addresses.txt
+      build: ./geth/
+      ports:
+         - "8545:8545"
+         - "30303:30303"
    db:
-     image: postgres:11-alpine
-     environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=postgres
-     volumes:
-        - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-     depends_on:
-        - "geth"
-     restart: "always"
-   dbexporter:
-     image: wrouesnel/postgres_exporter
-     environment:
-        - DATA_SOURCE_NAME=postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
-     ports:
-        - "9187:9187"
-     depends_on:
-        - "db"
-     restart: "always"
+      image: postgres:11-alpine
+      environment:
+         - POSTGRES_USER=postgres
+         - POSTGRES_PASSWORD=postgres
+      volumes:
+         - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      depends_on:
+         - "geth"
+      restart: "always"
    server:
-     build: ./server/
-     depends_on:
-        - "db"
-     ports:
-        - "9091:3000"
-     environment:
-        - DATA_SOURCE_NAME=postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
-        - GETH=http://geth:8545
-	# number of confirmations, after that number of confirmations is not increased
-        - GETH_MIN_CONFIRMATION=6
-	# number of confirmations to be considered new in 
-        - API_CONFIRMATION=3
-     restart: "always"
+      build: ./server/
+      depends_on:
+         - "db"
+      ports:
+         - "9091:9091"
+      environment:
+         - PGSQL_DSN=postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
+         - GETH=http://geth:8545
+         - GETH_MIN_CONFIRMATIONS=6
+         - HOST=0.0.0.0
+         - PORT=9091
+         - GETLAST_CONFIRMATIONS=3
+      restart: "always"
+#   client:
+#      build: ./client/
+#      depends_on:
+#         - "server"
