@@ -1,25 +1,33 @@
 package database
 
 import (
-_	"database/sql"
-	"github.com/jmoiron/sqlx"
-_	"github.com/lib/pq"
+	_ "database/sql"
 	"log"
+	"os"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
-func EnsureConnected() {
-	log.Println("[db] ensure connected")
+// Database Client structure
+type DbClient struct {
+	Dsn string
+	DB  *sqlx.DB
 }
 
 // Connect - return a connection to a postgres database wi
-func Connect(connectURL string) *sqlx.DB {
-	db, err := sqlx.Connect("postgres", connectURL)
+func NewDatabaseClient() *DbClient {
+	DSN, ok := os.LookupEnv("PGSQL_DSN")
+	if !ok {
+		DSN = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+	}
+	db, err := sqlx.Connect("postgres", DSN)
 	if err != nil {
-		log.Fatal("ERROR OPENING DB, NOT INITIALIZING", err)
+		log.Fatal("[db] Fatal Error, cannor open postgres database", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("[db] Ping Error", err)
 	}
-	return db
+	return &DbClient{DSN, db}
 }

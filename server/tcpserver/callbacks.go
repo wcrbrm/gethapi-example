@@ -5,15 +5,14 @@ import (
 )
 
 type Callbacks struct {
-	OnNewConnection func (clientUid string)
-	OnConnectionTerminated func (clientUid string)
+	OnNewConnection        func(clientUid string)
+	OnConnectionTerminated func(clientUid string)
 }
 
 func onNewConnection(clientUid string) {
-	log.Printf("[server] new connection %s", clientUid)
+	log.Printf("[server][%s] new connection", clientUid)
 }
 
 func onConnectionTerminated(clientUid string) {
-	log.Printf("[server] terminated connection %s", clientUid)
+	log.Printf("[server][%s] terminated connection", clientUid)
 }
-

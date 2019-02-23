@@ -1,49 +1,42 @@
 package tcpserver
 
 import (
-	"net"
 	"bufio"
-        "encoding/json"
+	"encoding/json"
 	"io"
 	"log"
-        "strings"
-        _ "time"
-)
+	"net"
+	"strings"
+	_ "time"
 
-type SendEth struct {
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Amount string `json:"amount"`
-	Key    string `json:"key"`
-}
-type Response struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
+	blockchain "github.com/wcrbrm/gethapi-example/server/blockchain"
+)
 
 type ConnectionEventType string
 
 const (
-	CONNECTION_EVENT_TYPE_NEW_CONNECTION        ConnectionEventType = "new_connection"
-	CONNECTION_EVENT_TYPE_CONNECTION_TERMINATED ConnectionEventType = "connection_terminated"
+	CONNECTION_EVENT_TYPE_NEW_CONNECTION           ConnectionEventType = "new_connection"
+	CONNECTION_EVENT_TYPE_CONNECTION_TERMINATED    ConnectionEventType = "connection_terminated"
 	CONNECTION_EVENT_TYPE_CONNECTION_GENERAL_ERROR ConnectionEventType = "general_error"
 )
 
 // Client holds info about connection
 type Client struct {
-	Uid  string 
-	conn net.Conn
+	Uid               string
+	conn              net.Conn
+	chain             *blockchain.BlockchainClient
 	onConnectionEvent func(c *Client, eventType ConnectionEventType, e error) /* function for handling new connections */
 }
 
-
-func NewClient(conn net.Conn, onConnectionEvent func(c *Client,eventType ConnectionEventType, e error)) *Client {
-	return  &Client{
-		conn: conn,
+func NewClient(conn net.Conn,
+	chain *blockchain.BlockchainClient,
+	onConnectionEvent func(c *Client, eventType ConnectionEventType, e error)) *Client {
+	return &Client{
+		conn:              conn,
+		chain:             chain,
 		onConnectionEvent: onConnectionEvent,
 	}
 }
-
 
 // Read client data from channel
 func (c *Client) listen() {
@@ -59,31 +52,33 @@ func (c *Client) listen() {
 		case io.EOF:
 			// connection terminated
 			c.conn.Close()
-			c.onConnectionEvent(c,CONNECTION_EVENT_TYPE_CONNECTION_TERMINATED, err)
+			c.onConnectionEvent(c, CONNECTION_EVENT_TYPE_CONNECTION_TERMINATED, err)
 			return
 		case nil:
 			// new data available
 			command := strings.TrimSpace(str)
-			if (strings.HasPrefix(command, "SendEth")) {
+			if strings.HasPrefix(command, "SendEth") {
 				log.Printf("[server][%s] SendEth received '%s'", c.Uid, command)
 				subs := command[len("SendEth"):]
 				// parse payload here
-				var payload SendEth
+				var payload blockchain.SendEthRequest
 				errPayload := json.Unmarshal([]byte(subs), &payload)
-				if (errPayload != nil) {
+				if errPayload != nil {
 					log.Printf("[server][%s] SendEth payload parser error: %s", c.Uid, errPayload)
-					c.SendResponse(Response{ "error", errPayload.Error() })
+					c.SendResponse(Response{"error", errPayload.Error()})
 				} else {
 					log.Printf("[server][%s] SendEth payload: '%s'", c.Uid, command)
-					c.SendResponse(Response{ "success", "OK" })
+					// TODO: send client response from c.chain.SendEth(payload)
+					c.SendResponse(Response{"success", "OK"})
 				}
 
-			} else if ( command == "GetLast") {
+			} else if command == "GetLast" {
 				log.Printf("[server][%s] GetLast received: '%s'", c.Uid, command)
-				c.SendResponse(Response{ "success", "OK" })
+				// TODO: send client response from c.chain.GetLast()
+				c.SendResponse(Response{"success", "OK"})
 			} else {
 				log.Printf("[server][%s] Data received: '%s', ignored", c.Uid, command)
-				c.SendResponse(Response{ "error", "Nil" })
+				c.SendResponse(Response{"error", "Nil"})
 			}
 		default:
 			log.Fatalf("[server][%s] Receive data failed:%s", c.Uid, err)
@@ -107,8 +102,6 @@ func (c *Client) SendResponse(resp Response) error {
 	return err
 }
 
-
-
 // Send bytes to client
 func (c *Client) SendBytes(b []byte) error {
 	_, err := c.conn.Write(b)
@@ -120,7 +113,7 @@ func (c *Client) Conn() net.Conn {
 }
 
 func (c *Client) Close() error {
-	if c.conn!=nil {
+	if c.conn != nil {
 		return c.conn.Close()
 	}
 	return nil

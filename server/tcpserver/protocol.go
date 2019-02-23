@@ -1,38 +1,18 @@
 package tcpserver
 
-type SendEthRequest struct {
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Amount string `json:"amount"`
-	Key    string `json:"key"`
-}
+import blockchain "github.com/wcrbrm/gethapi-example/server/blockchain"
 
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
-// SEND ETH interfaces
-type SendEthResponseBody struct {
-	Address string `json:"address"`
-	Tx      string `json:"tx"`
-	Nonce   string `json:"nonce"`
-}
-
 type SendEthResponse struct {
-	Status string              `json:"status"`
-	Data   SendEthResponseBody `json:"data"`
-}
-
-// GET LAST interfaces
-type GetLastResponseBody struct {
-	Date          string `json:"date"`
-	Address       string `json:"address"`
-	Amount        int    `json:"amount"`
-	Confirmations int    `json:"confirmation"`
+	Status string                         `json:"status"`
+	Data   blockchain.SendEthResponseBody `json:"data"`
 }
 
 type GetLastResponse struct {
-	Status string              `json:"status"`
-	Data   GetLastResponseBody `json:"data"`
+	Status string                         `json:"status"`
+	Data   blockchain.GetLastResponseBody `json:"data"`
 }
