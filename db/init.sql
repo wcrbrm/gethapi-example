@@ -8,22 +8,21 @@ CREATE TABLE blocks (
   "number" BIGSERIAL PRIMARY KEY,
   hash TEXT NOT NULL UNIQUE,
   confirmations NUMERIC NOT NULL DEFAULT '0',
-  parentHash TEXT NOT NULL,
-  nonce TEXT NOT NULL,
-  sha3Uncles TEXT NOT NULL,
-  logsBloom TEXT NOT NULL,
-  transactionsRoot TEXT NOT NULL,
-  stateRoot TEXT NOT NULL,
+  parentHash TEXT NOT NULL DEFAULT '',
+  nonce TEXT NOT NULL DEFAULT '',
+  sha3Uncles TEXT NOT NULL DEFAULT '',
+  logsBloom TEXT NOT NULL DEFAULT '',
+  transactionsRoot TEXT NOT NULL DEFAULT '',
+  stateRoot TEXT NOT NULL DEFAULT '',
   receiptsRoot TEXT NOT NULL,
-  miner TEXT NOT NULL,
-  difficulty NUMERIC NOT NULL,
-  totalDifficulty NUMERIC NOT NULL,
-  size BIGINT NOT NULL,
-  extraData TEXT NOT NULL,
-  gasLimit BIGINT NOT NULL,
-  gasUsed BIGINT NOT NULL,
-  "timestamp" TIMESTAMP NOT NULL,
-  mixhash TEXT
+  miner TEXT NOT NULL DEFAULT '',
+  difficulty NUMERIC NOT NULL DEFAULT 0,
+  size BIGINT NOT NULL DEFAULT 0,
+  extraData TEXT NOT NULL DEFAULT '',
+  gasLimit BIGINT NOT NULL DEFAULT 0,
+  gasUsed BIGINT NOT NULL DEFAULT 0,
+  "timestamp" BIGINT NOT NULL DEFAULT '0',
+  mixhash TEXT DEFAULT ''
 );
 
 CREATE TABLE transactions (
@@ -35,12 +34,12 @@ CREATE TABLE transactions (
   "from" TEXT NOT NULL,
   "to" TEXT NOT NULL,
   "value" NUMERIC NOT NULL,
-  gas BIGINT NOT NULL,
-  gasPrice NUMERIC NOT NULL,
-  "input" TEXT,
-  v TEXT,
-  r TEXT,
-  s TEXT
+  gas BIGINT NOT NULL DEFAULT 0,
+  gasPrice NUMERIC NOT NULL DEFAULT 0,
+  "input" TEXT DEFAULT '',
+  v TEXT DEFAULT '',
+  r TEXT DEFAULT '',
+  s TEXT DEFAULT ''
 );
 
 

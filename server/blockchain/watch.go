@@ -17,29 +17,31 @@ func (s *BlockchainClient) SyncBlock(num *big.Int) {
 	}
 
 	h := block.Header()
+	// log.Println("[blockchain[ Block Time: ", h.Time)
+
 	logsBloom, _ := h.Bloom.MarshalText()
-	blockProps := map[string]string{
+	blockProps := map[string]interface{}{
 		"number":           h.Number.String(),
 		"hash":             block.Hash().String(),
 		"confirmations":    "0",
 		"timestamp":        h.Time.String(),
-		"parentHash":       h.ParentHash.String(), // common.Hash
-		"nonce":            string(h.Nonce.Uint64()),
-		"sha3Uncles":       h.UncleHash.String(),
-		"logsBloom":        string(logsBloom),
-		"transactionsRoot": h.TxHash.String(),
-		"stateRoot":        h.Root.String(),
-		"receiptsRoot":     h.ReceiptHash.String(),
+		"parenthash":       h.ParentHash.String(), // common.Hash
+		"nonce":            strconv.FormatUint(h.Nonce.Uint64(), 10),
+		"sha3uncles":       h.UncleHash.String(),
+		"logsbloom":        string(logsBloom),
+		"transactionsroot": h.TxHash.String(),
+		"stateroot":        h.Root.String(),
+		"receiptsroot":     h.ReceiptHash.String(),
 		"miner":            h.Coinbase.Hex(),
 		"difficulty":       h.Difficulty.String(),
-		"extraData":        string(h.Extra),
-		"gasLimit":         strconv.FormatUint(h.GasLimit, 10),
-		"gasUsed":          strconv.FormatUint(h.GasUsed, 10),
+		"extradata":        "", // string(h.Extra),
+		"gaslimit":         strconv.FormatUint(h.GasLimit, 10),
+		"gasused":          strconv.FormatUint(h.GasUsed, 10),
 		"mixhash":          h.MixDigest.String(),
 	}
-	txProps := []map[string]string{}
 
 	// t := block.transactions
+	txProps := []map[string]interface{}{}
 	s.DB.SaveBlock(num,
 		h.ParentHash.String(),
 		blockProps,
@@ -52,7 +54,7 @@ func (s *BlockchainClient) WatchBlocks() {
 	d := 3 * time.Second
 	for {
 		time.Sleep(d)
-		log.Println("[blockchain] watching blocks carefully")
+		log.Println("[blockchain] waiting for more blocks")
 		s.EnsureSynced(false)
 	}
 }
@@ -67,7 +69,7 @@ func (s *BlockchainClient) EnsureSynced(firstRun bool) {
 	if verbose {
 		log.Println("[blockchain] Last block in database:", dbBlockNum.String())
 	}
-	if firstRun && dbBlockNum.Cmp(big.NewInt(0)) <= 0 {
+	if firstRun && dbBlockNum.Cmp(big.NewInt(0)) < 0 {
 		// If there are no blocks, check genesis and create accounts funded with initial allocation
 		s.DB.InitialAllocation(s.GetGenesisAllocation())
 	}

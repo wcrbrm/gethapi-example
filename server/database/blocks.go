@@ -13,7 +13,12 @@ func (s *DbClient) GetLastBlock() big.Int {
 		log.Fatal("[blocks] Error retrieving last block in database. Please check view_last_block exists ", err)
 	}
 	if rows.Next() {
-		err = rows.Scan(&number)
+		var num int64
+		err1 := rows.Scan(&num)
+		if err1 != nil {
+			log.Fatal("[blocks] Reading last block", err1)
+		}
+		number = *big.NewInt(num)
 	}
 	// log.Println("[blocks] GetLastBlock() returns", number.String())
 	return number
@@ -29,11 +34,11 @@ func (s *DbClient) GetBlocksToConfirm(parentHash string, depth int) []string {
 	return []string{}
 }
 
-func FieldsFromMap(data map[string]string) (string, string) {
+func FieldsFromMap(data map[string]interface{}) (string, string) {
 	fields := make([]string, 0)
 	values := make([]string, 0)
 	for key := range data {
-		fields = append(fields, key)
+		fields = append(fields, "\""+key+"\"")
 		values = append(values, ":"+key)
 	}
 	return strings.Join(fields, ","), strings.Join(values, ",")
@@ -41,19 +46,19 @@ func FieldsFromMap(data map[string]string) (string, string) {
 
 func (s *DbClient) SaveBlock(number *big.Int,
 	parentHash string,
-	blockProps map[string]string,
-	transactions []map[string]string) {
+	blockProps map[string]interface{},
+	transactions []map[string]interface{}) {
 
 	// get balances of accounts from this block
 	// accounts := map[string]*big.Int{}
 	// for _, t := range transactions {
 	// }
+	tx := s.DB.MustBegin()
 
 	// get hashes of N previous blocks, to increase confirmations
 	hashes := s.GetBlocksToConfirm(parentHash, s.nConfirmations)
-	log.Println("[block-save] blocks to add confirmation: ", hashes)
-	tx := s.DB.MustBegin()
 	if len(hashes) > 0 {
+		log.Println("[block-save] blocks to add confirmation: ", hashes)
 		// 1) update number of confirmations - on previous blocks
 		hashIndexes := make([]string, 0)
 		hashMap := map[string]string{}
@@ -73,9 +78,10 @@ func (s *DbClient) SaveBlock(number *big.Int,
 
 	// 2) insert block record
 	fields, values := FieldsFromMap(blockProps)
-	_, errBlock := tx.NamedExec(
-		"INSERT INTO blocks ("+fields+") "+
-			" VALUES ("+values+");", blockProps)
+	sql := "INSERT INTO blocks (" + fields + ") VALUES (" + values + ");"
+	// log.Println("[block-save] block SQL: ", sql)
+	// log.Println("[block-save] block Properties: ", blockProps)
+	_, errBlock := tx.NamedExec(sql, blockProps)
 	if errBlock != nil {
 		log.Println("[block-save] Inserting Block Error: ", errBlock)
 	}
