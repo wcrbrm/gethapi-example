@@ -3,6 +3,7 @@ package database
 import (
 	"log"
 	"math/big"
+	"strconv"
 	"strings"
 )
 
@@ -22,16 +23,6 @@ func (s *DbClient) GetLastBlock() big.Int {
 	}
 	// log.Println("[blocks] GetLastBlock() returns", number.String())
 	return number
-}
-
-// recursive function to accumulate hashed of blocks
-// to increase confirmations on them
-func (s *DbClient) GetBlocksToConfirm(parentHash string, depth int) []string {
-	if depth == 0 || parentHash == "0x0000000000000000000000000000000000000000000000000000000000000000" {
-		return []string{}
-	}
-	log.Println("Seeking for block with hash", parentHash)
-	return []string{}
 }
 
 func FieldsFromMap(data map[string]interface{}) (string, string) {
@@ -61,9 +52,9 @@ func (s *DbClient) SaveBlock(number *big.Int,
 		log.Println("[block-save] blocks to add confirmation: ", hashes)
 		// 1) update number of confirmations - on previous blocks
 		hashIndexes := make([]string, 0)
-		hashMap := map[string]string{}
+		hashMap := map[string]interface{}{}
 		for index, hash := range hashes {
-			alias := "hash" + string(index)
+			alias := "hash" + strconv.Itoa(index)
 			hashIndexes = append(hashIndexes, ":"+alias)
 			hashMap[alias] = hash
 		}
