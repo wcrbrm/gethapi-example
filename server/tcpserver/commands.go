@@ -32,8 +32,15 @@ func (c *Client) CommandSendEth(command string) {
 		log.Printf("[command][%s] SendEth payload parser error: %s", c.Uid, errPayload)
 		c.SendResponse(Response{"error", errPayload.Error()})
 	} else {
-		log.Printf("[command][%s] SendEth payload: '%s'", c.Uid, command)
-		// TODO: send client response from c.chain.SendEth(payload)
-		c.SendResponse(Response{"success", "OK"})
+		log.Printf("[command][%s] SendEth payload: '%s'", c.Uid, payload)
+		data, err := c.chain.SendEth(payload)
+		if err != nil {
+			log.Printf("[command][%s] '%s'", c.Uid, err)
+			c.SendResponse(Response{"error", err.Error()})
+		} else {
+			response := SendEthResponse{"success", *data}
+			json, _ := json.Marshal(response)
+			c.conn.Write([]byte(string(json) + "\r\n"))
+		}
 	}
 }

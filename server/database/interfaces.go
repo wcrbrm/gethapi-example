@@ -10,9 +10,7 @@ type SendEthRequest struct {
 }
 
 type SendEthResponseBody struct {
-	Address string `json:"address"`
-	Tx      string `json:"tx"`
-	Nonce   int    `json:"nonce"`
+	Tx string `json:"tx"`
 }
 
 type GetLastResponseBody struct {

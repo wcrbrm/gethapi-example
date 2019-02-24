@@ -5,22 +5,24 @@ import (
 	"math/big"
 )
 
-func (s *DbClient) GetLastTransactions(sinceBlock big.Int) (*[]GetLastResponseBody, error) {
+func (s *DbClient) GetLastTransactions(sinceBlock big.Int, confirmations int) (*[]GetLastResponseBody, error) {
 	arg := map[string]interface{}{
-		"confirmations": s.nConfirmations,
+		"confirmations": confirmations,
 		"since":         sinceBlock.String(),
 	}
 	sql := "SELECT b.timestamp, b.confirmations, " +
 		" t.value * 1e-18 amount, t.to address, b.number" +
 		" FROM blocks b, transactions t " +
 		" WHERE b.number = t.blockNumber " +
-		" AND (b.number < :confirmations OR b.number > :since)" +
+		" AND ((b.confirmations < :confirmations) OR (b.number > :since))" +
 		" ORDER BY b.number"
+	// log.Println("GetLastTransactions: sql=", sql, arg)
 
 	rows, err := s.DB.NamedQuery(sql, arg)
 	if err != nil {
 		log.Fatal("[database] Error retrieving last transactions ", err)
 	}
+	defer rows.Close()
 
 	result := []GetLastResponseBody{}
 	for rows.Next() {
