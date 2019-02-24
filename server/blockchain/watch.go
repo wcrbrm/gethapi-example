@@ -19,7 +19,7 @@ func (s *BlockchainClient) SyncBlock(num *big.Int) {
 	}
 
 	h := block.Header()
-	// log.Println("[blockchain[ Block Time: ", h.Time)
+	log.Println("[blockchain] block #", num.String(), "time=", h.Time, "size=", len(block.Transactions()))
 
 	logsBloom, _ := h.Bloom.MarshalText()
 	blockProps := map[string]interface{}{

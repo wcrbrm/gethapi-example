@@ -41,16 +41,24 @@ func (s *DbClient) SaveBlock(number *big.Int,
 	blockProps map[string]interface{},
 	transactions []map[string]interface{}) {
 
-	// get balances of accounts from this block
-	// accounts := map[string]*big.Int{}
-	// for _, t := range transactions {
-	// }
 	tx := s.DB.MustBegin()
+	// create addresses of destinations that are not in the database yet
+	for _, tProps := range transactions {
+		addr := tProps["to"]
+		arg := map[string]interface{}{
+			"address": addr,
+			"balance": "0",
+		}
+		// log.Println("[address] adding address", addr)
+		// the error below is ignored very intentionally
+		tx.NamedExec("INSERT INTO addresses (address, value) "+
+			"VALUES (:address, :balance) ON CONFLICT DO NOTHING", arg)
+	}
 
 	// get hashes of N previous blocks, to increase confirmations
 	hashes := s.GetBlocksToConfirm(parentHash, s.nConfirmations)
 	if len(hashes) > 0 {
-		log.Println("[block-save] blocks to add confirmation: ", hashes)
+		// log.Println("[block-save] blocks to add confirmation: ", hashes)
 		// 1) update number of confirmations - on previous blocks
 		hashIndexes := make([]string, 0)
 		hashMap := map[string]interface{}{}
@@ -89,10 +97,29 @@ func (s *DbClient) SaveBlock(number *big.Int,
 		if errT != nil {
 			log.Println("[transaction-save] Inserting Transaction Error: ", errT)
 		}
-	}
 
-	// 4) insert or update account balances
-	// TODO:
+		// the following part is probably completely wrong
+		// as we need to wait for confirmations, and should not update it
+		// on transaction discovery
+
+		// 4a) deduct balance from sender
+		var argFrom = map[string]interface{}{
+			"increment": tProps["value"],
+			"address":   tProps["from"],
+		}
+		tx.NamedExec("UPDATE addresses "+
+			"SET value = value - :increment, nonce = nonce + 1 "+
+			"WHERE address = :address", argFrom)
+
+		// 4b) add values to receiver
+		var argTo = map[string]interface{}{
+			"increment": tProps["value"],
+			"address":   tProps["to"],
+		}
+		tx.NamedExec("UPDATE addresses "+
+			"SET value = value + :increment "+
+			"WHERE address = :address", argTo)
+	}
 
 	err := tx.Commit()
 	if err != nil {
