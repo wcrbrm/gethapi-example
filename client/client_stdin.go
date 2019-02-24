@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"net"
 	"os"
 	"strings"
@@ -82,9 +83,14 @@ func GetShortcut(input string, accounts map[string]string) (*SendEthRequest, err
 	from := pubpriv1[0]
 	privateKey := pubpriv1[1]
 	to := pubpriv2[0]
-	value := words[2]
 
-	return &SendEthRequest{from, to, value, privateKey}, nil
+	n := new(big.Int)
+	_, errVal := fmt.Sscan(words[2], n)
+	if errVal != nil {
+		return nil, errVal
+	}
+	value := n.Mul(n, big.NewInt(1e18))
+	return &SendEthRequest{from, to, value.String(), privateKey}, nil
 }
 
 func main() {
