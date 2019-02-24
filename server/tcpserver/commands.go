@@ -8,15 +8,17 @@ import (
 )
 
 func (c *Client) CommandGetLast() {
-	data, err := c.chain.GetLast(c.lastBlock)
+	data, err := c.chain.GetLast(*c.lastBlock)
 	if err != nil {
 		log.Println(err)
 	}
-	response := GetLastResponse{"success", *data}
-	// for _, row := range *data {
-	// for each row, check if the block is
-	// c.lastBlock =
-	// }
+	response := GetLastResponse{"success", c.lastBlock, *data}
+	for _, row := range *data {
+		// for each row, check if the block is
+		if c.lastBlock.Cmp(&row.Number) < 0 {
+			c.lastBlock.Set(&row.Number)
+		}
+	}
 	json, _ := json.Marshal(response)
 	c.conn.Write([]byte(string(json) + "\r\n"))
 }

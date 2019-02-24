@@ -25,7 +25,7 @@ const (
 type Client struct {
 	Uid               string
 	conn              net.Conn
-	lastBlock         big.Int
+	lastBlock         *big.Int
 	chain             *BlockchainClient
 	onConnectionEvent func(c *Client, eventType ConnectionEventType, e error) /* function for handling new connections */
 }
@@ -36,7 +36,7 @@ func NewClient(conn net.Conn,
 	return &Client{
 		conn:              conn,
 		chain:             chain,
-		lastBlock:         *big.NewInt(-1),
+		lastBlock:         big.NewInt(-1),
 		onConnectionEvent: onConnectionEvent,
 	}
 }

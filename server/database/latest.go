@@ -10,24 +10,36 @@ func (s *DbClient) GetLastTransactions(sinceBlock big.Int) (*[]GetLastResponseBo
 		"confirmations": s.nConfirmations,
 		"since":         sinceBlock.String(),
 	}
-	sql := "SELECT b.number, b.timestamp, b.confirmations, " +
-		" t.hash hash, t.value, t.from, t.to " +
+	sql := "SELECT b.timestamp, b.confirmations, " +
+		" t.value * 1e-18 amount, t.to address, b.number" +
 		" FROM blocks b, transactions t " +
 		" WHERE b.number = t.blockNumber " +
-		" AND (b.number < :confirmations OR b.number > :since)"
+		" AND (b.number < :confirmations OR b.number > :since)" +
+		" ORDER BY b.number"
 
 	rows, err := s.DB.NamedQuery(sql, arg)
 	if err != nil {
 		log.Fatal("[database] Error retrieving last transactions ", err)
 	}
 
-	result := new([]GetLastResponseBody)
+	result := []GetLastResponseBody{}
 	for rows.Next() {
-		row := rows.Scan()
-		log.Println("row: ", row)
-		// - **date** - дата поступления.
-		// - **address** - адрес, на который был произведен перевод
-		// - **amount** - сумма перевода в ETH.
+		var timestamp string
+		var amount string
+		var confirmations int
+		var address string
+		var number int64
+		err := rows.Scan(&timestamp, &confirmations, &amount, &address, &number)
+		result = append(result, GetLastResponseBody{
+			Date:          timestamp,
+			Address:       address,
+			Amount:        amount,
+			Confirmations: confirmations,
+			Number:        *big.NewInt(number),
+		})
+		if err != nil {
+			log.Println("Get Last Transactions Error: ", err)
+		}
 	}
-	return result, nil
+	return &result, nil
 }
