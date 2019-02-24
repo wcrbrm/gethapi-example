@@ -13,6 +13,7 @@ func (s *DbClient) GetLastBlock() big.Int {
 	if err != nil {
 		log.Fatal("[blocks] Error retrieving last block in database. Please check view_last_block exists ", err)
 	}
+	defer rows.Close()
 	if rows.Next() {
 		var num int64
 		err1 := rows.Scan(&num)
@@ -78,9 +79,16 @@ func (s *DbClient) SaveBlock(number *big.Int,
 	}
 
 	// 3) insert transaction records, accumulate account balances
-	for _, t := range transactions {
-		// TODO:
-		log.Println("[blocks] Transaction to be inserted", t)
+	for _, tProps := range transactions {
+		fieldsT, valuesT := FieldsFromMap(tProps)
+		sql := "INSERT INTO transactions (" + fieldsT + ") VALUES (" + valuesT + ")"
+
+		// log.Println("[block-save] transaction SQL: ", sql)
+		// log.Println("[block-save] transaction Properties: ", tProps)
+		_, errT := tx.NamedExec(sql, tProps)
+		if errT != nil {
+			log.Println("[transaction-save] Inserting Transaction Error: ", errT)
+		}
 	}
 
 	// 4) insert or update account balances

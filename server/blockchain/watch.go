@@ -6,10 +6,12 @@ import (
 	"math/big"
 	"strconv"
 	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 func (s *BlockchainClient) SyncBlock(num *big.Int) {
-	log.Println("[blockchain] syncing block #", num.String())
+	log.Println("[blockchain] syncing block #", num.String(), " chainID=", s.ChainID.String())
 
 	block, err := s.Client.BlockByNumber(context.Background(), num)
 	if err != nil {
@@ -40,8 +42,30 @@ func (s *BlockchainClient) SyncBlock(num *big.Int) {
 		"mixhash":          h.MixDigest.String(),
 	}
 
-	// t := block.transactions
 	txProps := []map[string]interface{}{}
+	for txIndex, t := range block.Transactions() {
+		vv, rr, ss := t.RawSignatureValues()
+		var kvT = map[string]interface{}{
+			"hash":             t.Hash().Hex(),
+			"nonce":            strconv.FormatUint(t.Nonce(), 10),
+			"blockhash":        block.Hash().String(),
+			"blocknumber":      h.Number.String(),
+			"transactionindex": txIndex,
+			"to":               t.To().Hex(),
+			"value":            t.Value().String(),
+			"gas":              strconv.FormatUint(t.Gas(), 10),
+			"gasprice":         t.GasPrice().String(),
+			"v":                vv.String(),
+			"r":                rr.String(),
+			"s":                ss.String(),
+		}
+		if msg, err := t.AsMessage(types.NewEIP155Signer(s.ChainID)); err != nil {
+			kvT["from"] = msg.From().Hex()
+		}
+		// log.Println("[blockchain] tx #", txIndex, kvT)
+		txProps = append(txProps, kvT)
+	}
+
 	s.DB.SaveBlock(num,
 		h.ParentHash.String(),
 		blockProps,

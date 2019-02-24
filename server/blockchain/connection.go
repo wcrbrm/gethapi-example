@@ -1,7 +1,9 @@
 package blockchain
 
 import (
+	"context"
 	"log"
+	"math/big"
 	"os"
 	"strconv"
 
@@ -14,6 +16,7 @@ type BlockchainClient struct {
 	NumLastConfirmations int // # of confirmations for "GetLast" output
 	DB                   *database.DbClient
 	Client               *ethclient.Client
+	ChainID              *big.Int
 	GenesisPath          string
 }
 
@@ -28,6 +31,12 @@ func NewGethConnection(db *database.DbClient) *BlockchainClient {
 	if err != nil {
 		log.Fatal("[blockchain] Couldn't connect to the GETH RPC server")
 	}
+	chainID, err := client.NetworkID(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("[blockchain] connected to %s. Chain ID=%s\n", GETH, chainID.String())
+
 	lastConfirmations, ok := os.LookupEnv("GETLAST_CONFIRMATIONS")
 	if !ok {
 		lastConfirmations = "3"
@@ -43,6 +52,7 @@ func NewGethConnection(db *database.DbClient) *BlockchainClient {
 		nLastConfirmations,
 		db,
 		client,
+		chainID,
 		genesisPath,
 	}
 }
