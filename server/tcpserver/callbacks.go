@@ -10,9 +10,9 @@ type Callbacks struct {
 }
 
 func onNewConnection(clientUid string) {
-	log.Printf("[server][%s] new connection", clientUid)
+	log.Printf("[server][%s] New connection", clientUid)
 }
 
 func onConnectionTerminated(clientUid string) {
-	log.Printf("[server][%s] terminated connection", clientUid)
+	log.Printf("[server][%s] Terminated connection", clientUid)
 }

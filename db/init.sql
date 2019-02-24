@@ -1,10 +1,10 @@
-CREATE UNLOGGED TABLE addresses (
+CREATE TABLE addresses (
   address TEXT PRIMARY KEY,
   value NUMERIC NOT NULL DEFAULT '0',
   nonce BIGINT NOT NULL DEFAULT '0'
 );
 
-CREATE UNLOGGED TABLE blocks (
+CREATE TABLE blocks (
   "number" BIGSERIAL PRIMARY KEY,
   hash TEXT NOT NULL UNIQUE,
   confirmations NUMERIC NOT NULL DEFAULT '0',
@@ -26,7 +26,7 @@ CREATE UNLOGGED TABLE blocks (
   mixhash TEXT
 );
 
-CREATE UNLOGGED TABLE transactions (
+CREATE TABLE transactions (
   hash TEXT PRIMARY KEY,
   nonce BIGINT,
   blockHash TEXT NOT NULL REFERENCES blocks(hash) ON DELETE CASCADE ON UPDATE CASCADE,

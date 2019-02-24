@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/big"
 	"net"
 	"strings"
 	_ "time"
 
-	blockchain "github.com/wcrbrm/gethapi-example/server/blockchain"
-	. "github.com/wcrbrm/gethapi-example/server/database"
+	. "github.com/wcrbrm/gethapi-example/server/blockchain"
 )
 
 type ConnectionEventType string
@@ -25,18 +25,18 @@ const (
 type Client struct {
 	Uid               string
 	conn              net.Conn
-	lastBlock         int
-	chain             *blockchain.BlockchainClient
+	lastBlock         big.Int
+	chain             *BlockchainClient
 	onConnectionEvent func(c *Client, eventType ConnectionEventType, e error) /* function for handling new connections */
 }
 
 func NewClient(conn net.Conn,
-	chain *blockchain.BlockchainClient,
+	chain *BlockchainClient,
 	onConnectionEvent func(c *Client, eventType ConnectionEventType, e error)) *Client {
 	return &Client{
 		conn:              conn,
 		chain:             chain,
-		lastBlock:         -1,
+		lastBlock:         *big.NewInt(-1),
 		onConnectionEvent: onConnectionEvent,
 	}
 }
@@ -62,26 +62,13 @@ func (c *Client) listen() {
 			command := strings.TrimSpace(str)
 			if strings.HasPrefix(command, "SendEth") {
 				log.Printf("[server][%s] SendEth received '%s'", c.Uid, command)
-				subs := command[len("SendEth"):]
-				// parse payload here
-				var payload SendEthRequest
-				errPayload := json.Unmarshal([]byte(subs), &payload)
-				if errPayload != nil {
-					log.Printf("[server][%s] SendEth payload parser error: %s", c.Uid, errPayload)
-					c.SendResponse(Response{"error", errPayload.Error()})
-				} else {
-					log.Printf("[server][%s] SendEth payload: '%s'", c.Uid, command)
-					// TODO: send client response from c.chain.SendEth(payload)
-					c.SendResponse(Response{"success", "OK"})
-				}
-
+				c.CommandSendEth(command)
 			} else if command == "GetLast" {
-				log.Printf("[server][%s] GetLast: '%s', since %d", c.Uid, command, c.lastBlock)
-				// TODO: send client response from c.chain.GetLast()
-				c.SendResponse(Response{"success", "OK"})
-			} else {
+				log.Printf("[server][%s] GetLast: '%s', since %s", c.Uid, command, c.lastBlock.String())
+				c.CommandGetLast()
+			} else if command != "" {
 				log.Printf("[server][%s] Data received: '%s', ignored", c.Uid, command)
-				c.SendResponse(Response{"error", "Nil"})
+				c.SendResponse(Response{"error", "No Command"})
 			}
 		default:
 			log.Fatalf("[server][%s] Receive data failed:%s", c.Uid, err)

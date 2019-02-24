@@ -13,6 +13,6 @@ type SendEthResponse struct {
 }
 
 type GetLastResponse struct {
-	Status string              `json:"status"`
-	Data   GetLastResponseBody `json:"data"`
+	Status string                `json:"status"`
+	Data   []GetLastResponseBody `json:"data"`
 }

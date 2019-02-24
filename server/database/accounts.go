@@ -6,20 +6,28 @@ import (
 )
 
 func (s *DbClient) InitialAllocation(accounts map[string]big.Int) {
-	tx, err := s.DB.Begin()
-	for accountId, amount := range accounts {
+
+	log.Println("[database] INITIALIZING")
+
+	_, errCleanup := s.DB.Exec("DELETE FROM addresses")
+	if errCleanup != nil {
+		log.Fatal("[database] Accounts clean up error: ", errCleanup)
+	}
+
+	tx := s.DB.MustBegin()
+	for addr, amount := range accounts {
 		arg := map[string]interface{}{
-			"address": accountId,
-			"balance": amount,
+			"address": addr,
+			"balance": amount.String(),
 		}
-		_, err = tx.Exec("INSERT INTO addresses (address, balance) "+
-			"VALUES (:address, :balance)", arg)
-		if err != nil {
-			log.Fatal("Initial Allocation Address Error", err)
+		_, errTx := tx.NamedExec("INSERT INTO addresses (address, value) "+
+			"VALUES (:address, :balance);", arg)
+		if errTx != nil {
+			log.Fatal("[database] Account insert error: ", errTx)
 		}
 	}
-	err = tx.Commit()
+	err := tx.Commit()
 	if err != nil {
-		log.Fatal("Initial Allocation Error", err)
+		log.Fatal("[database] Initial Allocation Error: ", err)
 	}
 }

@@ -24,13 +24,12 @@ func NewDatabaseClient() *DbClient {
 	}
 	db, err := sqlx.Connect("postgres", DSN)
 	if err != nil {
-		log.Fatal("[db] Fatal Error, cannor open postgres database", err)
+		log.Fatal("[db] Fatal Error, cannot open postgres database ", err)
 	}
 	err = db.Ping()
 	if err != nil {
 		log.Fatal("[db] Ping Error", err)
 	}
-
 	minConfirmations, ok := os.LookupEnv("GETH_MIN_CONFIRMATIONS")
 	if !ok {
 		minConfirmations = "6"

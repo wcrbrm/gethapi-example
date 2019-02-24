@@ -5,4 +5,5 @@ if ! [ "`which docker-compose`" ]; then
   exit 1
 fi
 
-docker-compose exec db psql -Upostgres
+sudo docker-compose exec db psql -Upostgres
+

@@ -5,4 +5,4 @@ if ! [ "`which docker-compose`" ]; then
   exit 1
 fi
 
-sudo docker-compose exec geth geth attach
+sudo docker-compose exec geth geth --preload=/root/init.js attach

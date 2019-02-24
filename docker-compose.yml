@@ -2,34 +2,29 @@ version: '3'
 services:
    geth:
       build: ./geth/
-      ports:
-         - "8545:8545"
+      # (ports should be open for debug only)
+      # ports:
+      #   - "8545:8545"
    db:
       image: postgres:11-alpine
       environment:
          - POSTGRES_USER=postgres
          - POSTGRES_PASSWORD=postgres
+      # (ports should be open for debug only)
+      # ports:
+      #   - "5432:5432"
       volumes:
          - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      depends_on:
-         - "geth"
       restart: "always"
    server:
       build: ./server/
-      depends_on:
-         - "db"
       ports:
          - "9091:9091"
       environment:
          - PGSQL_DSN=postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
          - GETH=http://geth:8545
          - GETH_MIN_CONFIRMATIONS=6
-         - GETH_GENESIS_BLOCK=/root/genesis.json
+         - GETLAST_CONFIRMATIONS=3
          - HOST=0.0.0.0
          - PORT=9091
-         - GETLAST_CONFIRMATIONS=3
       restart: "always"
-#   client:
-#      build: ./client/
-#      depends_on:
-#         - "server"

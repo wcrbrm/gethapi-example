@@ -2,12 +2,13 @@ package blockchain
 
 import (
 	"log"
+	"math/big"
 
 	. "github.com/wcrbrm/gethapi-example/server/database"
 )
 
-func (s *BlockchainClient) GetLast(since int) *GetLastResponseBody {
-	log.Println("[api] GetLast Since", since)
+func (s *BlockchainClient) GetLast(since big.Int) (*[]GetLastResponseBody, error) {
+	log.Println("[api] GetLast Since ", since.String())
 	return s.DB.GetLastTransactions(since)
 }
 

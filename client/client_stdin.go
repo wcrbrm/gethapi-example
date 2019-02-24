@@ -93,7 +93,7 @@ func main() {
 	for {
 		// read input from stdin
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Message to send# ")
+		fmt.Print("Message to send >> ")
 		text, _ := reader.ReadString('\n')
 
 		// if input string is in format of ACC#1 ACC#2 AMOUNT, then convert it
@@ -103,12 +103,12 @@ func main() {
 			fmt.Fprintf(conn, text+"\n")
 		} else {
 			payloadSendEth, _ := json.Marshal(sendEth)
-			log.Println("sending", string(payloadSendEth))
-			fmt.Fprintf(conn, string(payloadSendEth)+"\n")
+			log.Println("Sending )) ", string(payloadSendEth))
+			fmt.Fprintf(conn, "SendEth"+string(payloadSendEth)+"\n")
 		}
 
 		// listen for reply
 		message, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Print("Message from server: " + message)
+		fmt.Println("Message received: << " + message)
 	}
 }
